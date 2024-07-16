@@ -1,4 +1,4 @@
-<template>
+<template> 
   <div class="container-fluid">
     <div class="row no-gutter">
       <!-- The image half -->
@@ -131,10 +131,8 @@
                 </div>
                 <div class="w-100 text-center mt-4">
                   <p>
-                    {{ $t("Acculance v4.0.0. Developed by") }}
-                    <a href="https://codeshaper.net/" class="font-italic text-muted" target="__blank">
-                      <u>Codeshaper</u>
-                    </a>
+                    {{ $t("clickHub v1.0.0") }} oii
+                   
                   </p>
                 </div>
               </div>

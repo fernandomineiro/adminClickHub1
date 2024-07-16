@@ -88,6 +88,7 @@ class SupplierController extends Controller
                 'status' => $request->status,
                 'image_path' => $imageName,
             ]);
+ 
 
             //send welcome notification
             try {
@@ -101,7 +102,7 @@ class SupplierController extends Controller
                 //handle email error here if necessary
                 throw new Exception($e);
             }
-            return $this->responseWithSuccess('Supplier added successfully');
+            return $this->responseWithSuccess('Fornecedor add com sucesso!');
         } catch (Exception $e) {
             return $this->responseWithError($e->getMessage());
         }

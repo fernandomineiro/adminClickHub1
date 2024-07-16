@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
+
 use Exception;
 use App\Models\Client;
 use App\Models\Invoice;
@@ -27,6 +28,7 @@ use App\Http\Resources\InvoiceReturnListResource;
 use App\Http\Resources\NonInvoicePaymentListResource;
 use App\Http\Resources\ClientWithInvoicePaymentResource;
 use App\Http\Resources\ClientWithNonInvoicePaymentResource;
+use Illuminate\Support\Facades\Crypt;
 
 class ClientController extends Controller
 {
@@ -38,6 +40,8 @@ class ClientController extends Controller
         $this->middleware('can:client-view', ['only' => ['show']]);
         $this->middleware('can:client-edit', ['only' => ['update']]);
         $this->middleware('can:client-delete', ['only' => ['destroy']]);
+
+
     }
 
     /**
@@ -57,50 +61,69 @@ class ClientController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(ClientStoreRequest $request)
-    {
+    { 
         try {
             // generate code
             $code = 1;
             $lastClient = Client::latest()->first();
-            if ($lastClient) {
-                $code = $lastClient->client_id + 1;
-            }
+             if ($lastClient) {
+                 $code = $lastClient->client_id + 1;
+             }
 
             // upload thumbnail and set the name
             $imageName = '';
-            if ($request->image) {
-                $imageName = time() . '.' . explode(
-                    '/',
-                    explode(':', substr($request->image, 0, strpos($request->image, ';')))[1]
-                )[1];
-                Image::make($request->image)->save(public_path('images/clients/') . $imageName);
-            }
+             if ($request->image) {
+                 $imageName = time() . '.' . explode(
+                     '/',
+                     explode(':', substr($request->image, 0, strpos($request->image, ';')))[1]
+                 )[1];
+                 Image::make($request->image)->save(public_path('images/clients/') . $imageName);
+             }
 
-            // create client
-            $userSchema = Client::create([
-                'name' => $request->name,
-                'client_id' => $code,
-                'email' => $request->email,
-                'phone' => $request->phoneNumber,
-                'company_name' => $request->companyName,
-                'type' => $request->supplierType,
-                'address' => $request->address,
-                'status' => $request->status,
-                'image_path' => $imageName,
+             $validator = Validator::make($request->all(), [
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:clients,email',
+                'phoneNumber' => 'required|string|max:255|unique:clients,phone',
+                'password' => 'required|string|min:6',
             ]);
 
-            //send welcome notification
-            try {
-                if ($request->isSendEmail || $request->isSendSMS) {
-                    Notification::send($userSchema, new WelcomeNotification($userSchema, [
-                        'isSendEmail' => $request->isSendEmail,
-                        'isSendSMS' => $request->isSendSMS,
-                    ]));
-                }
-            } catch (Exception $e) {
-                //handle email error here if necessary
-                throw new Exception($e);
+            if ($validator->fails()) {
+                return response()->json($validator->errors(), 400);
             }
+
+            $encrypted = Crypt::encrypt($request->password);
+            // $decrypted = Crypt::decrypt($encrypted);
+            // return response()->json($decrypted);
+
+
+
+            // create client
+             $userSchema = Client::create([
+                 'name' => $request->name,
+                 'client_id' => $code,
+                 'email' => $request->email,
+                 'password' => $encrypted,
+                 'phone' => $request->phoneNumber,
+                 'company_name' => $request->companyName,
+                 'type' => $request->supplierType,
+                 'address' => $request->address,
+                 'status' => $request->status,
+                 'image_path' => $imageName,
+             ]);
+
+          
+            //send welcome notification
+             try {
+                 if ($request->isSendEmail || $request->isSendSMS) {
+                     Notification::send($userSchema, new WelcomeNotification($userSchema, [
+                         'isSendEmail' => $request->isSendEmail,
+                         'isSendSMS' => $request->isSendSMS,
+                     ]));
+                 }
+             } catch (Exception $e) {
+                 //handle email error here if necessary
+                 throw new Exception($e);
+             }
 
             return $this->responseWithSuccess('Client added successfully');
         } catch (Exception $e) {

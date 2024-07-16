@@ -73,16 +73,10 @@
                 </form>
               </div>
               <div class="w-100 text-center mt-4">
-                <p>
-                  {{ $t("Acculance v4.0.0. Developed by") }}
-                  <a
-                    href="https://codeshaper.net/"
-                    class="font-italic text-muted"
-                    target="__blank"
-                  >
-                    <u>Codeshaper</u>
-                  </a>
-                </p>
+                 <p>
+                    {{ $t("clickHub v1.0.0") }}
+                   
+                  </p>
               </div>
             </div>
           </div>

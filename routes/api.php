@@ -66,6 +66,7 @@ use App\Http\Controllers\API\InventoryAdjustmentController;
 
 // get general settings info
 Route::get('general-settings', [GeneralController::class, 'getGeneralSettings']);
+Route::apiResource('clients', ClientController::class);
 // command route
 Route::get('server', [ServerController::class, 'runCommand']);
 Route::group(['middleware' => 'auth:api'], function () {
